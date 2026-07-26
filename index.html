@@ -246,7 +246,7 @@
             pollInterval: 3000 // Tốc độ quét: 3 giây/lần
         };
 
-        // --- 2. DATA LAYER (Danh sách sinh viên, số tiền 15.350.000 VNĐ) ---
+        // --- 2. DATA LAYER (Chỉ giữ lại mã sinh viên của bạn với mã hóa đơn cũ và số tiền mới 15.350.000 VNĐ) ---
         const initialDB = {
             "25DH740559": {
                 student: {
@@ -264,82 +264,15 @@
                         amount: 15350000,
                         status: "PENDING",
                         due_date: "25/08/2026"
-                    }
-                ]
-            },
-            "25DH740123": {
-                student: {
-                    mssv: "25DH740123",
-                    full_name: "NGUYỄN ANH THƯ",
-                    faculty: "Khoa Ngoại ngữ (Ngôn ngữ Trung Quốc)",
-                    cohort: "K25"
-                },
-                invoices: [
+                    },
                     {
-                        invoice_code: "7192834012",
+                        invoice_code: "5868803743",
                         title: "Học phí",
-                        semester: "HK01",
-                        academic_year: "2026-2027",
-                        amount: 15350000,
-                        status: "PENDING",
-                        due_date: "25/08/2026"
-                    }
-                ]
-            },
-            "25DH740456": {
-                student: {
-                    mssv: "25DH740456",
-                    full_name: "LÊ BẢO TRÂN",
-                    faculty: "Khoa Ngoại ngữ (Ngôn ngữ Trung Quốc)",
-                    cohort: "K25"
-                },
-                invoices: [
-                    {
-                        invoice_code: "5483920184",
-                        title: "Học phí",
-                        semester: "HK01",
-                        academic_year: "2026-2027",
-                        amount: 15350000,
-                        status: "PENDING",
-                        due_date: "25/08/2026"
-                    }
-                ]
-            },
-            "25DH740789": {
-                student: {
-                    mssv: "25DH740789",
-                    full_name: "PHẠM MINH HOÀNG",
-                    faculty: "Khoa Công nghệ Thông tin",
-                    cohort: "K25"
-                },
-                invoices: [
-                    {
-                        invoice_code: "9384756102",
-                        title: "Học phí",
-                        semester: "HK01",
-                        academic_year: "2026-2027",
-                        amount: 15350000,
-                        status: "PENDING",
-                        due_date: "25/08/2026"
-                    }
-                ]
-            },
-            "25DH740999": {
-                student: {
-                    mssv: "25DH740999",
-                    full_name: "HOÀNG THỊ MAI",
-                    faculty: "Khoa Quản trị Kinh doanh",
-                    cohort: "K25"
-                },
-                invoices: [
-                    {
-                        invoice_code: "3294857610",
-                        title: "Học phí",
-                        semester: "HK01",
-                        academic_year: "2026-2027",
-                        amount: 15350000,
-                        status: "PENDING",
-                        due_date: "25/08/2026"
+                        semester: "HK02",
+                        academic_year: "2025-2026",
+                        amount: 20910000,
+                        status: "PAID",
+                        due_date: "24/12/2025"
                     }
                 ]
             }
