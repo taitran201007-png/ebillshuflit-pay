@@ -1,188 +1,397 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Thanh Toán - HUFLIT</title>
-    <!-- Font chữ đẹp từ Google -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>E-Bills Pro | Cổng Thanh Toán HUFLIT</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome & SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            /* Hình nền HUFLIT online đảm bảo không lỗi ảnh */
+            background: url('https://e-bills.vn/assets/merchant/huflit/themedefault/home/imgs/bg.jpg') center/cover fixed, #0f172a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
         }
-        .container {
-            background-color: #ffffff;
-            width: 100%;
-            max-width: 450px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            overflow: hidden;
-            margin: 20px;
+
+        .glass-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); /* Lớp phủ làm tối nền */
+            backdrop-filter: blur(5px);
+            z-index: -1;
         }
-        .header {
-            background-color: #004a99;
-            color: #ffffff;
-            text-align: center;
-            padding: 20px;
-        }
-        .header h2 {
-            margin: 0;
-            font-size: 22px;
-            letter-spacing: 1px;
-        }
-        .header p {
-            margin: 5px 0 0 0;
-            font-size: 14px;
-            opacity: 0.8;
-        }
-        .content {
-            padding: 25px;
-        }
-        .info-group {
-            margin-bottom: 15px;
-            border-bottom: 1px dashed #eee;
-            padding-bottom: 10px;
-        }
-        .info-group:last-child {
-            border-bottom: none;
-        }
-        .label {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .value {
-            font-size: 16px;
-            color: #333;
-            font-weight: 500;
-        }
-        .highlight {
-            color: #d32f2f;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        .qr-section {
-            text-align: center;
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-        }
-        .qr-section img {
-            width: 200px;
-            height: 200px;
-            object-fit: contain;
-        }
-        /* Nút bấm xác nhận */
-        .btn-confirm {
-            background-color: #0056b3;
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 24px;
             color: white;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-input {
+            background: rgba(0,0,0,0.3) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            color: white !important;
+            text-transform: uppercase;
+        }
+        
+        .glass-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.4) !important;
+            border-color: #0dcaf0 !important;
+        }
+
+        .glass-input::placeholder { color: rgba(255,255,255,0.5); }
+
+        .btn-glow {
+            background: linear-gradient(45deg, #0d6efd, #0dcaf0);
             border: none;
-            padding: 14px;
-            width: 100%;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-top: 10px;
+            color: white;
         }
-        .btn-confirm:hover {
-            background-color: #004494;
+        
+        .btn-glow:hover { 
+            box-shadow: 0 0 20px rgba(13, 202, 240, 0.6); 
+            color: white;
+            transform: translateY(-2px);
         }
-        .btn-confirm:disabled {
-            background-color: #28a745;
-            cursor: not-allowed;
-            box-shadow: none;
+
+        .badge-paid { background-color: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981;}
+        .badge-pending { background-color: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444;}
+        
+        /* Table styling */
+        .table-dark {
+            --bs-table-bg: transparent;
+            --bs-table-color: #fff;
         }
+        .table-hover tbody tr:hover { color: #fff; background-color: rgba(255, 255, 255, 0.05); }
+        .table-secondary { --bs-table-bg: rgba(255, 255, 255, 0.1); color: #fff; border-bottom: 2px solid rgba(255,255,255,0.2); }
+        
+        .copy-icon { cursor: pointer; color: #0dcaf0; transition: color 0.2s; }
+        .copy-icon:hover { color: #fff; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div class="header">
-        <h2>CỔNG THANH TOÁN</h2>
-        <p>Đại học Ngoại ngữ - Tin học TP.HCM</p>
-    </div>
+    <div class="glass-overlay"></div>
     
-    <div class="content">
-        <div class="info-group">
-            <div class="label">Đơn vị thụ hưởng</div>
-            <div class="value">Trường Đại học Ngoại ngữ - Tin học TP.HCM</div>
-        </div>
-        
-        <div class="info-group">
-            <div class="label">Số tài khoản (Ngân hàng Vietcombank)</div>
-            <div class="value">1234567890</div>
+    <div class="container py-5 content-wrapper position-relative">
+        <div class="text-center mb-5">
+            <!-- Tự động lấy logo HUFLIT -->
+            <img src="https://e-bills.vn/assets/merchant/huflit/themedefault/home/imgs/Logo.png" alt="HUFLIT" height="80" class="mb-3">
+            <h1 class="fw-bold text-white text-uppercase" style="letter-spacing: 2px;">Cổng Thanh Toán Trực Tuyến</h1>
+            <p class="text-light opacity-75">Hệ thống tra cứu và gạch nợ tự động E-BILLS</p>
         </div>
 
-        <div class="info-group">
-            <div class="label">Số tiền thanh toán</div>
-            <div class="value highlight">500.000 VNĐ</div>
+        <!-- KHUNG 1: TÌM KIẾM -->
+        <div id="searchSection" class="glass-card mx-auto" style="max-width: 500px;">
+            <form id="searchForm">
+                <div class="mb-4">
+                    <label class="form-label text-light fw-semibold">Nhập Mã Sinh Viên</label>
+                    <input type="text" id="mssvInput" class="form-control form-control-lg glass-input text-center" placeholder="Nhập mã sinh viên..." required autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-lg w-100 fw-bold btn-glow" id="btnSearch">
+                    <i class="fa-solid fa-magnifying-glass me-2"></i> TRA CỨU
+                </button>
+            </form>
         </div>
 
-        <div class="info-group">
-            <div class="label">Nội dung chuyển khoản (Vui lòng ghi chính xác)</div>
-            <div class="value" style="color: #004a99; font-weight: bold;">TV25207-HUFLIT [Mã SV] [Họ tên]</div>
-        </div>
+        <!-- KHUNG 2: KẾT QUẢ & THANH TOÁN (Ẩn mặc định) -->
+        <div id="resultSection" class="row mt-4" style="display: none;">
+            <!-- Nút Quay lại -->
+            <div class="col-12 mb-3">
+                <button onclick="backToSearch()" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+                </button>
+            </div>
 
-        <!-- Chỗ này để ảnh QR Code (Có thể thay link ảnh thật của bạn vào chỗ src="...") -->
-        <div class="qr-section">
-            <p style="margin-top: 0; font-size: 14px; color: #555; font-weight: 500;">Quét mã QR để thanh toán nhanh</p>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" alt="QR Code Thanh Toán">
-        </div>
+            <!-- Cột trái: Thông tin -->
+            <div class="col-lg-5 mb-4">
+                <div class="glass-card h-100">
+                    <h4 class="border-bottom border-secondary pb-2 mb-4 text-white">
+                        <i class="fa-solid fa-user-graduate text-info me-2"></i> Thông Tin Sinh Viên
+                    </h4>
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span class="text-light opacity-75">MSSV:</span> 
+                        <span id="st-mssv" class="fw-bold text-white font-monospace"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span class="text-light opacity-75">Họ Tên:</span> 
+                        <span id="st-name" class="fw-bold text-warning text-uppercase"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span class="text-light opacity-75">Khóa/Ngành:</span> 
+                        <span id="st-faculty" class="fw-bold text-white text-end"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cột phải: Thanh toán QR -->
+            <div class="col-lg-7 mb-4">
+                <div class="glass-card h-100">
+                    <h4 class="border-bottom border-secondary pb-2 mb-4 text-white">
+                        <i class="fa-solid fa-qrcode text-info me-2"></i> Thông Tin Chuyển Khoản
+                    </h4>
+                    <div id="payment-zone">
+                        <!-- Chèn bằng JS -->
+                    </div>
+                </div>
+            </div>
 
-        <!-- Nút xác nhận thanh toán -->
-        <button id="btn-xac-nhan" class="btn-confirm">
-            Xác nhận đã chuyển khoản
-        </button>
+            <!-- Bảng Hóa Đơn -->
+            <div class="col-12">
+                <div class="glass-card">
+                    <h4 class="mb-4 text-white">
+                        <i class="fa-solid fa-file-invoice-dollar text-info me-2"></i> Danh Sách Công Nợ & Lịch Sử
+                    </h4>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover table-borderless text-center align-middle m-0">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th class="py-3">Mã Hóa Đơn</th>
+                                    <th class="py-3">Nội Dung Thu</th>
+                                    <th class="py-3">Tổng Tiền (VNĐ)</th>
+                                    <th class="py-3">Hạn Chót</th>
+                                    <th class="py-3">Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceList">
+                                <!-- Chèn bằng JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- Thư viện tạo thông báo đẹp (SweetAlert2) -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- Script xử lý hiệu ứng giả lập -->
-<script>
-    document.getElementById('btn-xac-nhan').addEventListener('click', function() {
-        // Bước 1: Hiện bảng Loading giả lập đang kiểm tra ngân hàng
-        Swal.fire({
-            title: 'Đang kiểm tra giao dịch...',
-            html: 'Hệ thống đang đối soát với ngân hàng. Vui lòng không đóng trình duyệt.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+    <script>
+        // Cơ sở dữ liệu mẫu tích hợp ngay trong file
+        const initialDB = {
+            "25DH740559": {
+                student: {
+                    mssv: "25DH740559",
+                    full_name: "TRẦN THÀNH TÀI",
+                    faculty: "Khoa Ngoại ngữ (Ngôn ngữ Trung Quốc)",
+                    cohort: "K25"
+                },
+                invoices: [
+                    {
+                        invoice_code: "6839201834",
+                        title: "Học phí tín chỉ, BHYT & Các khoản thu khác",
+                        semester: "HK01",
+                        academic_year: "2026-2027",
+                        amount: 18350000,
+                        status: "PENDING",
+                        due_date: "25/08/2026"
+                    },
+                    {
+                        invoice_code: "5868803743",
+                        title: "Học phí",
+                        semester: "HK02",
+                        academic_year: "2025-2026",
+                        amount: 20910000,
+                        status: "PAID",
+                        due_date: "24/12/2025"
+                    }
+                ]
             }
+        };
+
+        // Clone Database để có thể mô phỏng đổi trạng thái
+        let db = JSON.parse(JSON.stringify(initialDB));
+
+        // Tiện ích format
+        const formatVND = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+        const removeAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+
+        // Hàm copy text
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Đã copy: ' + text,
+                showConfirmButton: false,
+                timer: 2000,
+                background: '#1e293b',
+                color: '#fff'
+            });
+        }
+
+        // Bắt sự kiện Submit Form
+        document.getElementById('searchForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const mssv = document.getElementById('mssvInput').value.trim().toUpperCase();
+            const btnSearch = document.getElementById('btnSearch');
+            
+            btnSearch.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> ĐANG TÌM KIẾM...';
+            btnSearch.disabled = true;
+
+            setTimeout(() => {
+                if (db[mssv]) {
+                    renderDashboard(db[mssv]);
+                    document.getElementById('searchSection').style.display = 'none';
+                    
+                    // Hiệu ứng Fade In cho kết quả
+                    const resultSec = document.getElementById('resultSection');
+                    resultSec.style.opacity = 0;
+                    resultSec.style.display = 'flex';
+                    setTimeout(() => resultSec.style.opacity = 1, 50);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Không tìm thấy!',
+                        text: 'Mã sinh viên không tồn tại trong hệ thống.',
+                        background: '#1e293b',
+                        color: '#fff',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                }
+                btnSearch.innerHTML = '<i class="fa-solid fa-magnifying-glass me-2"></i> TRA CỨU';
+                btnSearch.disabled = false;
+            }, 800); // Giả lập độ trễ mạng
         });
 
-        // Bước 2: Đợi 3 giây (3000ms) rồi hiện thông báo thành công
-        setTimeout(() => {
-            Swal.fire({
-                icon: 'success',
-                title: 'Thanh toán thành công!',
-                text: 'Hệ thống đã ghi nhận khoản thu của sinh viên. Biên lai sẽ được cập nhật sau ít phút.',
-                confirmButtonText: 'Hoàn tất',
-                confirmButtonColor: '#28a745'
-            }).then((result) => {
-                if (result.isConfirmed || result.isDismissed) {
-                    // Đổi giao diện nút sau khi bấm xong
-                    const btn = document.getElementById('btn-xac-nhan');
-                    btn.innerText = "✓ Giao dịch hoàn tất";
-                    btn.disabled = true;
-                }
-            });
-        }, 3000); 
-    });
-</script>
+        // Hàm hiển thị dữ liệu
+        function renderDashboard(data) {
+            const { student, invoices } = data;
+            
+            // 1. Đổ dữ liệu Sinh Viên
+            document.getElementById('st-mssv').textContent = student.mssv;
+            document.getElementById('st-name').textContent = student.full_name;
+            document.getElementById('st-faculty').innerHTML = `${student.cohort} <br> <small class="text-info">${student.faculty}</small>`;
 
+            // 2. Khu vực thanh toán
+            const pendingInv = invoices.find(inv => inv.status === 'PENDING');
+            const paymentZone = document.getElementById('payment-zone');
+            
+            if (pendingInv) {
+                // Tạo nội dung: EB [MSSV] [HỌ TÊN KHÔNG DẤU] THANH TOAN
+                const transferContent = `EB ${student.mssv} ${removeAccents(student.full_name).toUpperCase()} THANH TOAN`;
+                
+                // Gọi API VietQR với Template Compact2
+                const qrUrl = `https://img.vietqr.io/image/MB-0931441536-compact2.png?amount=${pendingInv.amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=NGUYEN%20THANH%20NGAN`;
+                
+                paymentZone.innerHTML = `
+                    <div class="row align-items-center">
+                        <div class="col-md-7 text-start">
+                            <p class="mb-1 text-light opacity-75 font-monospace">Mã đơn: <b class="text-white">${pendingInv.invoice_code}</b></p>
+                            <p class="mb-1 text-light opacity-75 mt-3">Số tiền thanh toán:</p>
+                            <h3 class="text-danger fw-bold mb-3">${formatVND(pendingInv.amount)}</h3>
+                            
+                            <p class="mb-1 text-light opacity-75">Nội dung chuyển khoản (Bắt buộc):</p>
+                            <div class="p-3 bg-dark rounded border border-secondary d-flex justify-content-between align-items-center">
+                                <span class="text-info fw-bold font-monospace" style="font-size: 15px;">${transferContent}</span>
+                                <i class="fa-regular fa-copy copy-icon fs-5" onclick="copyToClipboard('${transferContent}')" title="Copy Nội Dung"></i>
+                            </div>
+                            
+                            <button onclick="simulateWebhook('${student.mssv}')" class="btn btn-success w-100 mt-4 fw-bold rounded-pill shadow-sm">
+                                <i class="fa-solid fa-bolt me-2"></i> Xác nhận thanh toán Demo
+                            </button>
+                        </div>
+                        <div class="col-md-5 text-center mt-4 mt-md-0">
+                            <img src="${qrUrl}" alt="VietQR" class="img-fluid rounded-4 shadow-lg p-2 bg-white" style="max-width: 240px;">
+                        </div>
+                    </div>
+                `;
+            } else {
+                paymentZone.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-shield-check text-success mb-3" style="font-size: 60px;"></i>
+                        <h4 class="text-white">Hoàn Tất Thanh Toán!</h4>
+                        <p class="text-light opacity-75">Không có khoản nợ học phí nào cần thanh toán ở thời điểm hiện tại.</p>
+                    </div>
+                `;
+            }
+
+            // 3. Render Bảng Lịch sử
+            renderTable(invoices);
+        }
+
+        // Vẽ bảng hóa đơn
+        function renderTable(invoices) {
+            const tbody = document.getElementById('invoiceList');
+            tbody.innerHTML = '';
+            invoices.forEach(inv => {
+                const badge = inv.status === 'PAID' 
+                    ? `<span class="badge badge-paid px-3 py-2 rounded-pill"><i class="fa-solid fa-check-circle me-1"></i> ĐÃ THANH TOÁN</span>`
+                    : `<span class="badge badge-pending px-3 py-2 rounded-pill"><i class="fa-solid fa-clock me-1"></i> CHỜ THANH TOÁN</span>`;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-monospace text-light">${inv.invoice_code}</td>
+                        <td class="text-start">
+                            <b class="text-white">${inv.title}</b><br>
+                            <small class="text-info">${inv.semester} (${inv.academic_year})</small>
+                        </td>
+                        <td class="fw-bold text-white">${formatVND(inv.amount)}</td>
+                        <td class="text-light opacity-75">${inv.due_date}</td>
+                        <td>${badge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Giả lập Webhook đối soát thành công
+        function simulateWebhook(mssv) {
+            Swal.fire({
+                title: 'Đang xử lý giao dịch...',
+                text: 'Hệ thống đang kết nối ngân hàng để đối soát.',
+                background: '#1e293b',
+                color: '#fff',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading() }
+            });
+
+            setTimeout(() => {
+                const pendingInv = db[mssv].invoices.find(inv => inv.status === 'PENDING');
+                if (pendingInv) pendingInv.status = 'PAID';
+                
+                renderDashboard(db[mssv]);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Giao dịch thành công!',
+                    text: 'Đã gạch nợ hệ thống thành công.',
+                    background: '#1e293b',
+                    color: '#fff',
+                    confirmButtonColor: '#10b981'
+                });
+            }, 1500);
+        }
+
+        // Nút quay lại
+        function backToSearch() {
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('searchSection').style.display = 'block';
+            document.getElementById('mssvInput').value = '';
+            
+            // Khôi phục lại trạng thái PENDING ban đầu để lần tìm kiếm sau vẫn hiện QR
+            db = JSON.parse(JSON.stringify(initialDB));
+        }
+        
+        // Tự động tìm kiếm nếu có tham số trên URL (?customer=25DH740559)
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const customerId = urlParams.get('customer');
+            if (customerId) {
+                document.getElementById('mssvInput').value = customerId;
+                document.getElementById('btnSearch').click();
+            }
+        });
+    </script>
 </body>
 </html>
