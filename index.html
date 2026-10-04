@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Bills Pro | Demo Tra Cứu Học Phí HUFLIT</title>
+    <title>E-Bills Pro | Tra Cứu Học Phí HUFLIT</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -114,33 +114,70 @@
             color: #fff; 
             border-bottom: 2px solid rgba(255, 255, 255, 0.2); 
         }
-        
-        .copy-icon { 
-            cursor: pointer; 
-            color: #0dcaf0; 
-            transition: color 0.2s, transform 0.2s; 
-        }
-
-        .copy-icon:hover { 
-            color: #fff; 
-            transform: scale(1.1);
-        }
-
-        /* Utility transition classes */
+/* Utility transition classes */
         .fade-in { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 768px) {
+            .container {
+                padding-top: 1.5rem !important;
+                padding-bottom: 1.5rem !important;
+            }
 
-        /* Status Check Animation */
-        .status-polling {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(245, 158, 11, 0.2);
-            border: 1px solid #f59e0b;
-            color: #fcd34d;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 500;
+            .text-center.mb-5 {
+                margin-bottom: 1.75rem !important;
+            }
+
+            .text-center.mb-5 img {
+                height: 60px;
+            }
+
+            .text-center.mb-5 h1 {
+                font-size: clamp(1.7rem, 8vw, 2.4rem);
+                letter-spacing: 1px !important;
+                line-height: 1.15;
+            }
+
+            .text-center.mb-5 p {
+                font-size: 0.95rem;
+            }
+
+            .glass-card {
+                padding: 18px;
+                border-radius: 14px;
+            }
+
+            #searchSection {
+                max-width: 100% !important;
+            }
+
+            #resultSection .col-lg-5,
+            #resultSection .col-lg-7,
+            #resultSection .col-12 {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            #st-name {
+                font-size: 1rem !important;
+                text-align: right;
+                max-width: 65%;
+            }
+
+            #st-faculty {
+                max-width: 65%;
+            }
+
+            .table-responsive {
+                border-radius: 12px;
+            }
+
+            .table th,
+            .table td {
+                white-space: nowrap;
+                font-size: 0.9rem;
+            }
         }
+
     </style>
 </head>
 <body>
@@ -151,7 +188,7 @@
         <div class="text-center mb-5">
             <img src="https://e-bills.vn/assets/merchant/huflit/themedefault/home/imgs/Logo.png" alt="HUFLIT Logo" height="80" class="mb-3 drop-shadow">
             <h1 class="fw-bold text-white text-uppercase" style="letter-spacing: 2px;">Cổng Thanh Toán Trực Tuyến</h1>
-            <p class="text-light opacity-75">Trang demo cá nhân để tra cứu trạng thái học phí</p>
+            <p class="text-light opacity-75">Trang cá nhân để tra cứu trạng thái học phí</p>
         </div>
 
         <!-- Section 1: Search Form -->
@@ -239,8 +276,7 @@
     <!-- Main JavaScript Logic -->
     <script>
         // --- 1. DATA LAYER ---
-// --- 1. DATA LAYER ---
-        const initialDB = {
+const initialDB = {
             "25DH740559": {
                 student: {
                     mssv: "25DH740559",
@@ -275,26 +311,6 @@
 
         // --- 2. TIỆN ÍCH (Utilities) ---
         const formatVND = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
-        const removeAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
-
-        const copyToClipboard = (text) => {
-            navigator.clipboard.writeText(text).then(() => {
-                Swal.fire({
-                    toast: true, position: 'top-end', icon: 'success',
-                    title: 'Đã copy: ' + text, showConfirmButton: false, timer: 2000,
-                    background: '#1e293b', color: '#fff'
-                });
-            });
-        };
-
-        // Phát tiếng "Ting ting" khi tiền về
-        const playSuccessSound = () => {
-            try {
-                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
-                audio.play();
-            } catch(e) { console.warn("Lỗi phát âm thanh"); }
-        };
-
         // --- 3. LOGIC HIỂN THỊ & XỬ LÝ (Core Logic) ---
 
         document.addEventListener('DOMContentLoaded', () => {
