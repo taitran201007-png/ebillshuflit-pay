@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Bills Pro | Cổng Thanh Toán HUFLIT Tự Động</title>
+    <title>E-Bills Pro | Demo Tra Cứu Học Phí HUFLIT</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -151,7 +151,11 @@
         <div class="text-center mb-5">
             <img src="https://e-bills.vn/assets/merchant/huflit/themedefault/home/imgs/Logo.png" alt="HUFLIT Logo" height="80" class="mb-3 drop-shadow">
             <h1 class="fw-bold text-white text-uppercase" style="letter-spacing: 2px;">Cổng Thanh Toán Trực Tuyến</h1>
-            <p class="text-light opacity-75">Hệ thống tra cứu và gạch nợ tự động E-BILLS</p>
+            <p class="text-light opacity-75">Trang demo cá nhân để tra cứu trạng thái học phí</p>
+            <div class="alert alert-warning d-inline-block mt-2 mb-0 py-2 px-3 small" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                Đây là trang demo, không phải cổng thanh toán chính thức của HUFLIT hoặc E-BILLS.
+            </div>
         </div>
 
         <!-- Section 1: Search Form -->
@@ -201,7 +205,7 @@
             <div class="col-lg-7 mb-4">
                 <div class="glass-card h-100">
                     <h4 class="border-bottom border-secondary pb-2 mb-4 text-white">
-                        <i class="fa-solid fa-qrcode text-info me-2"></i> Thông Tin Chuyển Khoản
+                        <i class="fa-solid fa-circle-check text-info me-2"></i> Trạng Thái Học Phí
                     </h4>
                     <div id="payment-zone" class="fade-in">
                         <!-- Injected via JavaScript -->
@@ -246,7 +250,7 @@
             pollInterval: 3000 // Tốc độ quét: 3 giây/lần
         };
 
-        // --- 2. DATA LAYER (Số tiền mới 18.350.000 VNĐ) ---
+        // --- 1. DATA LAYER ---
         const initialDB = {
             "25DH740559": {
                 student: {
@@ -280,7 +284,7 @@
 
         let db = JSON.parse(JSON.stringify(initialDB));
 
-        // --- 3. TIỆN ÍCH (Utilities) ---
+        // --- 2. TIỆN ÍCH (Utilities) ---
         const formatVND = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
         const removeAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
 
@@ -302,46 +306,8 @@
             } catch(e) { console.warn("Lỗi phát âm thanh"); }
         };
 
-        // --- 4. MODULE QUÉT NGÂN HÀNG TỰ ĐỘNG (Auto-Polling) ---
-        const AutoChecker = (() => {
-            let timer = null;
-            let currentMssv = null;
+        // --- 3. LOGIC HIỂN THỊ & XỬ LÝ (Core Logic) ---
 
-            const stop = () => {
-                if (timer) clearInterval(timer);
-                timer = null;
-                currentMssv = null;
-            };
-
-            const start = (amount, orderContent, mssv) => {
-                stop();
-                currentMssv = mssv;
-
-                timer = setInterval(async () => {
-                    try {
-                        const response = await fetch(`https://sieuthicode.net/api/history/${BANK_CONFIG.accountNo}`);
-                        const data = await response.json();
-
-                        if (data && data.transactions) {
-                            const isPaid = data.transactions.some(tx => 
-                                tx.description.includes(orderContent) && parseFloat(tx.amount) >= amount
-                            );
-
-                            if (isPaid) {
-                                stop();
-                                executePaymentSuccess(currentMssv);
-                            }
-                        }
-                    } catch (error) {
-                        console.log("Đang chờ giao dịch mới từ ngân hàng...");
-                    }
-                }, BANK_CONFIG.pollInterval);
-            };
-
-            return { start, stop };
-        })();
-
-        // --- 5. LOGIC HIỂN THỊ & XỬ LÝ (Core Logic) ---
         document.addEventListener('DOMContentLoaded', () => {
             const searchForm = document.getElementById('searchForm');
             const mssvInput = document.getElementById('mssvInput');
@@ -373,24 +339,6 @@
                 }, 800);
             });
         });
-
-        // Hàm xử lý chung khi thanh toán THÀNH CÔNG
-        const executePaymentSuccess = (mssv) => {
-            const pendingInv = db[mssv].invoices.find(inv => inv.status === 'PENDING');
-            if (pendingInv) pendingInv.status = 'PAID';
-            
-            playSuccessSound();
-            renderDashboard(db[mssv]);
-            
-            Swal.fire({
-                icon: 'success',
-                title: 'Giao dịch thành công!',
-                text: 'Hệ thống đã nhận được tiền và gạch nợ thành công.',
-                background: '#1e293b',
-                color: '#fff',
-                confirmButtonColor: '#10b981'
-            });
-        };
 
         // Render Giao diện
         const renderDashboard = (data) => {
