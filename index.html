@@ -242,15 +242,8 @@
 
     <!-- Main JavaScript Logic -->
     <script>
-        // --- 1. CẤU HÌNH NGÂN HÀNG (Chuẩn mẫu thẻ QR MB Bank của bạn) ---
-        const BANK_CONFIG = {
-            bankId: "MB", 
-            accountNo: "0931441536", 
-            accountName: "NGUYEN THANH NGAN", 
-            pollInterval: 3000 // Tốc độ quét: 3 giây/lần
-        };
-
         // --- 1. DATA LAYER ---
+// --- 1. DATA LAYER ---
         const initialDB = {
             "25DH740559": {
                 student: {
@@ -266,7 +259,7 @@
                         semester: "HK01",
                         academic_year: "2026-2027",
                         amount: 18350000,
-                        status: "PENDING",
+                        status: "PAID",
                         due_date: "31/08/2026"
                     },
                     {
@@ -348,45 +341,25 @@
             document.getElementById('st-name').textContent = student.full_name;
             document.getElementById('st-faculty').innerHTML = `${student.cohort} <br> <small class="text-info">${student.faculty}</small>`;
 
-            const pendingInv = invoices.find(inv => inv.status === 'PENDING');
+            const pendingInvoices = invoices.filter(inv => inv.status === 'PENDING');
             const paymentZone = document.getElementById('payment-zone');
-            
-            if (pendingInv) {
-                const transferContent = `EB ${student.mssv} ${removeAccents(student.full_name).toUpperCase()} THANH TOAN`;
-                const dynamicQrUrl = `https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.png?amount=${pendingInv.amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
 
-                paymentZone.innerHTML = `
-                    <div class="row align-items-center">
-                        <div class="col-md-7 text-start">
-                            <p class="mb-1 text-light opacity-75 font-monospace">Mã đơn: <b class="text-white">${pendingInv.invoice_code}</b></p>
-                            <p class="mb-1 text-light opacity-75 mt-3">Số tiền thanh toán:</p>
-                            <h3 class="text-danger fw-bold mb-3">${formatVND(pendingInv.amount)}</h3>
-                            
-                            <p class="mb-1 text-light opacity-75">Nội dung chuyển khoản <span class="text-warning">(Bắt buộc)</span>:</p>
-                            <div class="p-3 bg-dark rounded border border-secondary d-flex justify-content-between align-items-center shadow-sm mb-4">
-                                <span class="text-info fw-bold font-monospace" style="font-size: 15px;">${transferContent}</span>
-                                <i class="fa-regular fa-copy copy-icon fs-5" onclick="copyToClipboard('${transferContent}')" title="Copy Nội Dung"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-5 text-center mt-2 mt-md-0">
-                            <div class="bg-white p-2 rounded-4 shadow-lg d-inline-block">
-                                <img src="${dynamicQrUrl}" alt="Mã QR Thanh Toán Tự Động" class="img-fluid rounded-3" style="max-width: 200px;">
-                            </div>
-                            <div class="mt-3 status-polling">
-                                <i class="fa-solid fa-spinner fa-spin me-2"></i> Đang chờ chuyển khoản...
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                AutoChecker.start(pendingInv.amount, transferContent, student.mssv);
-
-            } else {
+            if (pendingInvoices.length === 0) {
                 paymentZone.innerHTML = `
                     <div class="text-center py-5 fade-in">
-                        <i class="fa-solid fa-shield-check text-success mb-3" style="font-size: 60px; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));"></i>
+                        <i class="fa-solid fa-circle-check text-success mb-3" style="font-size: 60px; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));"></i>
                         <h4 class="text-white fw-bold">Hoàn Tất Thanh Toán!</h4>
-                        <p class="text-light opacity-75 mt-2">Không có khoản nợ học phí nào cần thanh toán ở thời điểm hiện tại.</p>
+                        <p class="text-light opacity-75 mt-2">Hệ thống đã ghi nhận các khoản học phí hiện có đã được thanh toán.</p>
+                    </div>
+                `;
+            } else {
+                const totalPending = pendingInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+                paymentZone.innerHTML = `
+                    <div class="text-center py-4 fade-in">
+                        <i class="fa-solid fa-clock text-warning mb-3" style="font-size: 54px;"></i>
+                        <h4 class="text-white fw-bold">Có khoản cần thanh toán</h4>
+                        <p class="text-light opacity-75 mb-2">Tổng số tiền đang chờ: <b class="text-danger">${formatVND(totalPending)}</b></p>
+                        <p class="text-light opacity-75 mb-0">Vui lòng sử dụng kênh thanh toán chính thức được nhà trường cung cấp.</p>
                     </div>
                 `;
             }
@@ -422,7 +395,6 @@
 
         // Nút Quay lại
         window.backToSearch = () => {
-            AutoChecker.stop();
             document.getElementById('resultSection').style.display = 'none';
             document.getElementById('searchSection').style.display = 'block';
             document.getElementById('mssvInput').value = '';
