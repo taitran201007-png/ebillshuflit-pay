@@ -295,22 +295,13 @@ const initialDB = {
                         due_date: "31/08/2026"
                     },
                     {
-                        invoice_code: "",
+                        invoice_code: "5868803743",
                         title: "Học phí",
                         semester: "HK02",
                         academic_year: "2026-2027",
                         amount: 20910000,
                         status: "PENDING",
                         due_date: "24/12/2026"
-                    },
-                    {
-                        invoice_code: "5868803743",
-                        title: "Học phí",
-                        semester: "HK02",
-                        academic_year: "2025-2026",
-                        amount: 20910000,
-                        status: "PAID",
-                        due_date: "24/12/2025"
                     }
                 ]
             }
@@ -401,7 +392,7 @@ const initialDB = {
                 
                 tbody.innerHTML += `
                     <tr>
-                        <td class="font-monospace text-light">${inv.invoice_code || ""}</td>
+                        <td class="font-monospace text-light">${inv.invoice_code}</td>
                         <td class="text-start">
                             <b class="text-white">${inv.title}</b><br>
                             <small class="text-info">${inv.semester} (${inv.academic_year})</small>
