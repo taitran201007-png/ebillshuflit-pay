@@ -114,7 +114,77 @@
             color: #fff; 
             border-bottom: 2px solid rgba(255, 255, 255, 0.2); 
         }
-/* Utility transition classes */
+
+        .payment-meta {
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .payment-amount {
+            color: #f87171;
+            font-size: clamp(1.9rem, 4vw, 2.45rem);
+            letter-spacing: -0.5px;
+        }
+
+        .transfer-box {
+            background: rgba(2, 6, 23, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.38);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .transfer-content {
+            flex: 1;
+            min-width: 0;
+            color: #22d3ee;
+            font-weight: 700;
+            font-family: Consolas, "Courier New", monospace;
+            line-height: 1.55;
+            overflow-wrap: anywhere;
+        }
+
+        .copy-payment-btn {
+            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-radius: 10px;
+            background: rgba(34, 211, 238, 0.12);
+            color: #22d3ee;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .copy-payment-btn:hover {
+            background: rgba(34, 211, 238, 0.22);
+            transform: translateY(-1px);
+        }
+
+        .qr-shell {
+            display: inline-block;
+            background: #fff;
+            padding: 10px;
+            border-radius: 18px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        .qr-shell img {
+            display: block;
+            width: min(100%, 260px);
+            border-radius: 12px;
+        }
+
+        .payment-note {
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(15, 23, 42, 0.38);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.82rem;
+        }
+
+        /* Utility transition classes */
         .fade-in { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) {
@@ -176,6 +246,14 @@
                 white-space: nowrap;
                 font-size: 0.9rem;
             }
+
+            .transfer-box {
+                align-items: flex-start;
+            }
+
+            .qr-shell img {
+                width: min(100%, 235px);
+            }
         }
 
     </style>
@@ -189,6 +267,7 @@
             <img src="https://e-bills.vn/assets/merchant/huflit/themedefault/home/imgs/Logo.png" alt="HUFLIT Logo" height="80" class="mb-3 drop-shadow">
             <h1 class="fw-bold text-white text-uppercase" style="letter-spacing: 2px;">Cổng Thanh Toán Trực Tuyến</h1>
             <p class="text-light opacity-75">Trang cá nhân để tra cứu trạng thái học phí</p>
+            <p class="small text-light opacity-50 mb-0">Không thuộc hệ thống thanh toán chính thức của HUFLIT hoặc E-BILLS.</p>
         </div>
 
         <!-- Section 1: Search Form -->
@@ -238,7 +317,7 @@
             <div class="col-lg-7 mb-4">
                 <div class="glass-card h-100">
                     <h4 class="border-bottom border-secondary pb-2 mb-4 text-white">
-                        <i class="fa-solid fa-circle-check text-info me-2"></i> Trạng Thái Học Phí
+                        <i class="fa-solid fa-qrcode text-info me-2"></i> Thông Tin Chuyển Khoản
                     </h4>
                     <div id="payment-zone" class="fade-in">
                         <!-- Injected via JavaScript -->
@@ -320,6 +399,54 @@ const initialDB = {
 
         // --- 2. TIỆN ÍCH (Utilities) ---
         const formatVND = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+
+        const BANK_CONFIG = {
+            bankId: "MB",
+            accountNo: "0931441536",
+            accountName: "NGUYEN THANH NGAN"
+        };
+
+        const removeAccents = (str) => str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'D');
+
+        const copyToClipboard = async (value) => {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(value);
+                } else {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = value;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.remove();
+                }
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Đã sao chép nội dung chuyển khoản',
+                    showConfirmButton: false,
+                    timer: 1800,
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Không thể sao chép',
+                    text: 'Bạn hãy nhấn giữ để sao chép nội dung chuyển khoản.',
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+            }
+        };
         // --- 3. LOGIC HIỂN THỊ & XỬ LÝ (Core Logic) ---
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -362,28 +489,61 @@ const initialDB = {
             document.getElementById('st-name').textContent = student.full_name;
             document.getElementById('st-faculty').innerHTML = `${student.cohort} <br> <small class="text-info">${student.faculty}</small>`;
 
-            const pendingInvoices = invoices.filter(inv => inv.status === 'PENDING');
+            const pendingInv = invoices.find(inv => inv.status === 'PENDING');
             const paymentZone = document.getElementById('payment-zone');
 
-            if (pendingInvoices.length === 0) {
+            if (!pendingInv) {
                 paymentZone.innerHTML = `
                     <div class="text-center py-5 fade-in">
                         <i class="fa-solid fa-circle-check text-success mb-3" style="font-size: 60px; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));"></i>
                         <h4 class="text-white fw-bold">Hoàn Tất Thanh Toán!</h4>
-                        <p class="text-light opacity-75 mt-2">Hệ thống đã ghi nhận các khoản học phí hiện có đã được thanh toán.</p>
+                        <p class="text-light opacity-75 mt-2 mb-0">Không có khoản học phí nào đang chờ thanh toán.</p>
                     </div>
                 `;
-            } else {
-                const totalPending = pendingInvoices.reduce((sum, inv) => sum + inv.amount, 0);
-                paymentZone.innerHTML = `
-                    <div class="text-center py-4 fade-in">
-                        <i class="fa-solid fa-clock text-warning mb-3" style="font-size: 54px;"></i>
-                        <h4 class="text-white fw-bold">Có khoản cần thanh toán</h4>
-                        <p class="text-light opacity-75 mb-2">Tổng số tiền đang chờ: <b class="text-danger">${formatVND(totalPending)}</b></p>
-                        <p class="text-light opacity-75 mb-0">Vui lòng sử dụng kênh thanh toán chính thức được nhà trường cung cấp.</p>
-                    </div>
-                `;
+                renderTable(invoices);
+                return;
             }
+
+            const transferContent = `EB ${student.mssv} ${removeAccents(student.full_name).toUpperCase()} THANH TOAN`;
+            const qrUrl = `https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.png?amount=${pendingInv.amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
+
+            paymentZone.innerHTML = `
+                <div class="row align-items-center g-4 fade-in">
+                    <div class="col-md-7 text-start">
+                        <p class="payment-meta mb-1">Mã đơn: <b class="text-white font-monospace">${pendingInv.invoice_code}</b></p>
+                        <p class="payment-meta mb-1 mt-3">Số tiền thanh toán:</p>
+                        <div class="payment-amount fw-bold mb-3">${formatVND(pendingInv.amount)}</div>
+
+                        <p class="payment-meta mb-2">Nội dung chuyển khoản <span class="text-warning">(Bắt buộc)</span>:</p>
+                        <div class="transfer-box mb-3">
+                            <div class="transfer-content">${transferContent}</div>
+                            <button
+                                type="button"
+                                class="copy-payment-btn"
+                                onclick="copyToClipboard(this.dataset.copy)"
+                                data-copy="${transferContent}"
+                                aria-label="Sao chép nội dung chuyển khoản"
+                                title="Sao chép"
+                            >
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <div class="payment-note">
+                            Đây là thông tin chuyển khoản cá nhân được cấu hình trên trang này, không phải cổng thanh toán chính thức của HUFLIT hoặc E-BILLS.
+                        </div>
+                    </div>
+
+                    <div class="col-md-5 text-center">
+                        <div class="qr-shell">
+                            <img src="${qrUrl}" alt="Mã QR VietQR thanh toán">
+                        </div>
+                        <div class="mt-3 text-light opacity-75 small">
+                            ${pendingInv.semester} · ${pendingInv.academic_year} · Hạn ${pendingInv.due_date}
+                        </div>
+                    </div>
+                </div>
+            `;
 
             renderTable(invoices);
         };
