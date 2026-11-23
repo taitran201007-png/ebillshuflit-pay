@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+in<!DOCTYPE html>
 <html lang="vi" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -175,15 +175,6 @@
             border-radius: 12px;
         }
 
-        .payment-note {
-            border: 1px solid rgba(148, 163, 184, 0.22);
-            background: rgba(15, 23, 42, 0.38);
-            border-radius: 10px;
-            padding: 10px 12px;
-            color: rgba(255, 255, 255, 0.62);
-            font-size: 0.82rem;
-        }
-
         /* Utility transition classes */
         .fade-in { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -255,7 +246,6 @@
                 width: min(100%, 235px);
             }
         }
-
     </style>
 </head>
 <body>
@@ -267,7 +257,6 @@
             <img src="https://e-bills.vn/assets/merchant/huflit/themedefault/home/imgs/Logo.png" alt="HUFLIT Logo" height="80" class="mb-3 drop-shadow">
             <h1 class="fw-bold text-white text-uppercase" style="letter-spacing: 2px;">Cổng Thanh Toán Trực Tuyến</h1>
             <p class="text-light opacity-75">Trang cá nhân để tra cứu trạng thái học phí</p>
-            
         </div>
 
         <!-- Section 1: Search Form -->
@@ -303,6 +292,230 @@
                         <span id="st-mssv" class="fw-bold text-white font-monospace fs-5"></span>
                     </div>
                     <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span class="text-light opacity-75">Họ Tên:</span> 
+                        <span id="st-name" class="fw-bold text-warning text-uppercase fs-5"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span class="text-light opacity-75">Khóa/Ngành:</span> 
+                        <span id="st-faculty" class="fw-bold text-white text-end"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Payment & QR -->
+            <div class="col-lg-7 mb-4">
+                <div class="glass-card h-100">
+                    <h4 class="border-bottom border-secondary pb-2 mb-4 text-white">
+                        <i class="fa-solid fa-qrcode text-info me-2"></i> Thông Tin Chuyển Khoản
+                    </h4>
+                    <div id="payment-zone" class="fade-in">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Table: Invoice History -->
+            <div class="col-12">
+                <div class="glass-card">
+                    <h4 class="mb-4 text-white">
+                        <i class="fa-solid fa-file-invoice-dollar text-info me-2"></i> Mã Hóa Đơn
+                    </h4>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover table-borderless text-center align-middle m-0">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th class="py-3">Mã Hóa Đơn</th>
+                                    <th class="py-3 text-start">Nội Dung Thu</th>
+                                    <th class="py-3">Tổng Tiền (VNĐ)</th>
+                                    <th class="py-3">Hạn Chót</th>
+                                    <th class="py-3">Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceList">
+                                <!-- Injected via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script>
+        // --- 1. DATA LAYER ---
+        const initialDB = {
+            "25DH740559": {
+                student: {
+                    mssv: "25DH740559",
+                    full_name: "TRẦN THÀNH TÀI",
+                    faculty: "Khoa Ngoại ngữ (Ngôn ngữ Trung Quốc)",
+                    cohort: "K25"
+                },
+                invoices: [
+                    {
+                        invoice_code: "5868803743",
+                        title: "Học phí",
+                        semester: "HK02",
+                        academic_year: "2026-2027",
+                        amount: 19680000,
+                        status: "PENDING",
+                        due_date: "24/12/2026"
+                    },
+                    {
+                        invoice_code: "6839201834",
+                        title: "Học phí",
+                        semester: "HK01",
+                        academic_year: "2026-2027",
+                        amount: 18450000,
+                        status: "PAID",
+                        due_date: "31/08/2026"
+                    },
+                    {
+                        invoice_code: "5868803743",
+                        title: "Học phí",
+                        semester: "HK02",
+                        academic_year: "2025-2026",
+                        amount: 20910000,
+                        status: "PAID",
+                        due_date: "24/12/2025"
+                    }
+                ]
+            }
+        };
+
+        let db = JSON.parse(JSON.stringify(initialDB));
+
+        // --- 2. TIỆN ÍCH (Utilities) ---
+        const formatVND = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+
+        const BANK_CONFIG = {
+            bankId: "MB",
+            accountNo: "0931441536",
+            accountName: "NGUYEN THANH NGAN"
+        };
+
+        const removeAccents = (str) => str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'D');
+
+        const copyToClipboard = async (value) => {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(value);
+                } else {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = value;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.remove();
+                }
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Đã sao chép nội dung chuyển khoản',
+                    showConfirmButton: false,
+                    timer: 1800,
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Không thể sao chép',
+                    text: 'Bạn hãy nhấn giữ để sao chép nội dung chuyển khoản.',
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+            }
+        };
+
+        // --- 3. LOGIC HIỂN THỊ & XỬ LÝ (Core Logic) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchForm = document.getElementById('searchForm');
+            const mssvInput = document.getElementById('mssvInput');
+            const btnSearch = document.getElementById('btnSearch');
+            const searchSection = document.getElementById('searchSection');
+            const resultSection = document.getElementById('resultSection');
+
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const mssv = mssvInput.value.trim().toUpperCase();
+                
+                btnSearch.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> ĐANG TÌM KIẾM...';
+                btnSearch.disabled = true;
+
+                setTimeout(() => {
+                    if (db[mssv]) {
+                        renderDashboard(db[mssv]);
+                        searchSection.style.display = 'none';
+                        resultSection.classList.add('fade-in');
+                        resultSection.style.display = 'flex';
+                    } else {
+                        Swal.fire({
+                            icon: 'error', title: 'Không tìm thấy!', text: 'Mã sinh viên không tồn tại trong hệ thống.',
+                            background: '#1e293b', color: '#fff', confirmButtonColor: '#3b82f6'
+                        });
+                    }
+                    btnSearch.innerHTML = '<i class="fa-solid fa-magnifying-glass me-2"></i> TRA CỨU';
+                    btnSearch.disabled = false;
+                }, 800);
+            });
+        });
+
+        // Render Giao diện
+        const renderDashboard = (data) => {
+            const { student, invoices } = data;
+            
+            document.getElementById('st-mssv').textContent = student.mssv;
+            document.getElementById('st-name').textContent = student.full_name;
+            document.getElementById('st-faculty').innerHTML = `${student.cohort} <br> <small class="text-info">${student.faculty}</small>`;
+
+            const pendingInv = invoices.find(inv => inv.status === 'PENDING');
+            const paymentZone = document.getElementById('payment-zone');
+
+            if (!pendingInv) {
+                paymentZone.innerHTML = `
+                    <div class="text-center py-5 fade-in">
+                        <i class="fa-solid fa-circle-check text-success mb-3" style="font-size: 60px; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));"></i>
+                        <h4 class="text-white fw-bold">Hoàn Tất Thanh Toán!</h4>
+                        <p class="text-light opacity-75 mt-2 mb-0">Không có khoản học phí nào đang chờ thanh toán.</p>
+                    </div>
+                `;
+                renderTable(invoices);
+                return;
+            }
+
+            const transferContent = `EB ${student.mssv} ${removeAccents(student.full_name).toUpperCase()} THANH TOAN`;
+            const qrUrl = `https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.png?amount=${pendingInv.amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
+
+            paymentZone.innerHTML = `
+                <div class="row align-items-center g-4 fade-in">
+                    <div class="col-md-7 text-start">
+                        <p class="payment-meta mb-1">Mã đơn: <b class="text-white font-monospace">${pendingInv.invoice_code}</b></p>
+                        <p class="payment-meta mb-1 mt-3">Số tiền thanh toán:</p>
+                        <div class="payment-amount fw-bold mb-3">${formatVND(pendingInv.amount)}</div>
+
+                        <p class="payment-meta mb-2">Nội dung chuyển khoản <span class="text-warning">(Bắt buộc)</span>:</p>
+                        <div class="transfer-box">
+                            <div class="transfer-content">${transferContent}</div>
+                            <button type="button" class="copy-payment-btn" onclick="copyToClipboard('${transferContent}')" title="Sao chép nội dung">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5 text-center">
+                        <div class="qr-shell">
+        
+                <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
                         <span class="text-light opacity-75">Họ Tên:</span> 
                         <span id="st-name" class="fw-bold text-warning text-uppercase fs-5"></span>
                     </div>
